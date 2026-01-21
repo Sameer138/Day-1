@@ -1,59 +1,19 @@
-trigger:
-- main
-
 pool:
   name: "DIVA Pool"
 
 variables:
   - group: aws-prod-creds
 
-stages:
-  - stage: Terraform_Deploy
-    jobs:
-      - job: Terraform
-        displayName: "Terraform apply"
-        steps:
-          - checkout: self
-          - task: Bash@3
-            displayName: Terraform Init
-            inputs:
-              targetType: inline
-              script: |
-                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-                terraform init
-          - task: Bash@3
-            displayName: Terraform validate
-            inputs:
-              targetType: inline
-              script: |
-                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-                terraform validate
-          - task: Bash@3
-            displayName: Terraform plan
-            inputs:
-              targetType: inline
-              script: |
-                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-                terraform plan -out=tfplan
-          - task: Bash@3
-            displayName: Terraform apply
-            inputs:
-              targetType: inline
-              script: |
-                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-                terraform apply -auto-approve tfplan
-
-          - task: Bash@3
-            displayName: Terraform Destroy
-            inputs:
-              targetType: inline
-              script: |
-                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-                terraform destroy -auto-approve
-                
-            
+steps:
+  - checkout: self
+  - bash: |
+      terraform init
+      terraform validate
+      terraform plan -out=tfplan
+    displayName: "Terraform Plan"
+  - bash: |
+      terraform apply -auto-approve tfplan
+    displayName: "Terraform Approve"
+  - bash: |
+      terraform destroy -auto-approve
+    displayName: "Terraform destroy"
