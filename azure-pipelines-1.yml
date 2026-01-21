@@ -1,0 +1,13 @@
+trigger:
+- main
+
+pool:
+  name  : 'DIVA Pool'
+
+steps:
+- task: TerraformInstaller@1
+  inputs:
+    terraformVersion: '1.6.6'  # Specify the version you need
+
+- script: terraform version
+  displayName: 'Check Terraform Version'
