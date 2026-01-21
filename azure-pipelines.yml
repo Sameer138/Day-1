@@ -1,20 +1,49 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
 - main
 
 pool:
   name: "DIVA Pool"
 
-jobs:
-  - job: 
-    displayName: "Install terraform"
-    steps:
-      - task: TerraformInstaller@1
-        inputs:
-          terraformVersion: '1.6.6'
-      - script: terraform version
-        displayName: "checking the terraform version"
+variables:
+  - group: aws-prod-creds
+
+stages:
+  - stage: Terraform_Deploy
+    jobs:
+      - job: Terraform
+        displayName: "Terraform apply"
+        steps:
+          - checkout: self
+          - task: Bash@3
+            displayName: Terraform Init
+            inputs:
+              targetType: inline
+              script: |
+                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+                terraform init
+          - task: Bash@3
+            displayName: Terraform validate
+            inputs:
+              targetType: inline
+              script: |
+                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+                terraform validate
+          - task: Bash@3
+            displayName: Terraform plan
+            inputs:
+              targetType: inline
+              script: |
+                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+                terraform plan -out=tfplan
+          - task: Bash@3
+            displayName: Terraform apply
+            inputs:
+              targetType: inline
+              script: |
+                export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
+                export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
+                terraform apply -auto-approve tfplan
+            
